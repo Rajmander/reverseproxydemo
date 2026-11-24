@@ -5,10 +5,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const connect = () => {
+const connect = async () => {
   try {
     //mongoose.connect("mongodb://localhost:27017/appdb");
-    mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
 
     console.log("Connected");
   } catch (error) {
