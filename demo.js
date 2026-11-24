@@ -80,10 +80,10 @@ app.patch("/patch", async (req, res, next) => {
 app.post("/users", async (req, res, next) => {
   try {
     const userData = await user.create({
-      name: "Prashant",
-      age: 45,
-      city: "Banglore",
-      salary: 50000,
+      name: "Raj Singh",
+      age: 11,
+      city: "Delhi",
+      salary: 60000,
     });
     return res.json({ msg: "user created", data: userData });
   } catch (error) {
