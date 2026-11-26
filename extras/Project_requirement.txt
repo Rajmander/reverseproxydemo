@@ -1,1 +1,345 @@
 # 
+
+crm-platform/
+
+backend/
+
+Node.js REST API
+
+frontend/
+
+Bootstrap application
+
+database/
+
+SQL migrations and seeds
+
+deployment/
+
+EC2, Nginx and PM2 configuration
+
+docs/
+
+API and deployment documentation
+
+scripts/
+
+Maintenance and automation scripts
+
+.env.example
+
+Environment variable template
+
+package.json
+
+Project scripts and dependencies
+
+README.md
+
+Project setup guide
+
+
+crm-platform/
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   │   ├── database.js
+│   │   │   ├── environment.js
+│   │   │   └── logger.js
+│   │   │
+│   │   ├── routes/
+│   │   │   └── index.js
+│   │   │
+│   │   ├── modules/
+│   │   │   ├── auth/
+│   │   │   │   ├── auth.routes.js
+│   │   │   │   ├── auth.controller.js
+│   │   │   │   ├── auth.service.js
+│   │   │   │   └── auth.validation.js
+│   │   │   │
+│   │   │   ├── customers/
+│   │   │   ├── leads/
+│   │   │   ├── users/
+│   │   │   ├── roles/
+│   │   │   ├── dashboard/
+│   │   │   ├── telephony/
+│   │   │   ├── reports/
+│   │   │   └── settings/
+│   │   │
+│   │   ├── middleware/
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── permission.middleware.js
+│   │   │   ├── error.middleware.js
+│   │   │   └── rate-limit.middleware.js
+│   │   │
+│   │   ├── integrations/
+│   │   │   └── airtel-iq/
+│   │   │       ├── airtel.client.js
+│   │   │       ├── airtel.webhook.js
+│   │   │       └── airtel.mapper.js
+│   │   │
+│   │   ├── jobs/
+│   │   ├── utils/
+│   │   ├── app.js
+│   │   └── server.js
+│   │
+│   ├── tests/
+│   ├── package.json
+│   └── .env.example
+│
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── assets/
+│   │   │   ├── css/
+│   │   │   ├── js/
+│   │   │   ├── images/
+│   │   │   └── vendor/
+│   │
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── dashboard/
+│   │   │   ├── customers/
+│   │   │   ├── leads/
+│   │   │   ├── users/
+│   │   │   ├── telephony/
+│   │   │   └── reports/
+│   │   │
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── middleware/
+│   │   └── main.js
+│   │
+│   └── package.json
+│
+├── database/
+│   ├── migrations/
+│   ├── seeds/
+│   └── schema.sql
+│
+├── deployment/
+│   ├── nginx/
+│   │   └── crm.conf
+│   ├── pm2/
+│   │   └── ecosystem.config.js
+│   └── scripts/
+│       ├── deploy.sh
+│       └── backup.sh
+│
+├── docs/
+├── scripts/
+├── .gitignore
+├── .env.example
+└── README.md
+
+
+3. Backend architecture
+For the Node.js API, I recommend:
+
+Node.js
+Express.js
+MySQL
+Sequelize or Knex.js
+JWT or secure session-based authentication
+Joi or Zod validation
+Winston or Pino logging
+PM2 process management
+
+Each business module should have four main responsibilities.
+
+Example: Customers module.
+
+customers/
+├── customers.routes.js
+├── customers.controller.js
+├── customers.service.js
+├── customers.repository.js
+└── customers.validation.js
+
+
+
+File                                    Responsibility
+Routes                                  API endpoint definitions
+Controller                                  Request and response handling
+Service                                  Business logic
+Repository                                  Database queries
+Validation                                  Request validation
+
+
+This separation makes the application easier to maintain as your CRM grows.
+
+Because you're planning to connect Airtel IQ, keep its integration separate from your CRM business logic.
+
+backend/src/
+│
+├── integrations/
+│   └── airtel-iq/
+│       ├── client.js
+│       ├── authentication.js
+│       ├── click-to-call.js
+│       ├── webhook.js
+│       ├── cdr.js
+│       └── recording.js
+│
+└── modules/
+    └── telephony/
+        ├── telephony.routes.js
+        ├── telephony.controller.js
+        ├── telephony.service.js
+        ├── call.repository.js
+        ├── call-events.service.js
+        └── telephony.validation.js
+
+
+        . EC2 server folder structure
+        On your EC2 Ubuntu server, I recommend:
+
+/var/www/
+│
+└── crm-platform/
+    ├── backend/
+    ├── frontend/
+    ├── deployment/
+    └── shared/
+        ├── logs/
+        └── uploads/
+
+
+        Important:
+
+Never put .env files inside the publicly accessible frontend directory.
+
+Keep uploaded customer documents outside the public web root.
+
+Use a private S3 bucket for recordings and customer documents where appropriate.
+
+Keep MySQL credentials in environment variables or a secrets manager.
+
+Use HTTPS.
+
+Keep the Node.js API listening on localhost, not directly exposed to the internet.
+
+
+Nginx configuration
+Example: deployment/nginx/crm.conf
+
+server {
+    listen 80;
+    server_name crm.example.com;
+
+    root /var/www/crm-platform/frontend/public;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/api/;
+
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+This is an HTTP baseline; configure HTTPS certificates before production use.
+
+
+
+PM2 configuration
+File: deployment/pm2/ecosystem.config.js
+
+module.exports = {
+  apps: [
+    {
+      name: "crm-api",
+      script: "./backend/src/server.js",
+
+      instances: 1,
+      exec_mode: "fork",
+
+      autorestart: true,
+      watch: false,
+
+      max_memory_restart: "500M",
+
+      env_production: {
+        NODE_ENV: "production",
+        PORT: 3000
+      }
+    }
+  ]
+};
+
+Deployment commands:
+
+
+cd /var/www/crm-platform
+
+npm install --omit=dev
+
+pm2 start deployment/pm2/ecosystem.config.js \
+  --env production
+
+pm2 save
+
+pm2 startup
+
+Install dependencies separately in the backend and frontend if they have separate package.json files.
+
+Recommended technology choices
+Component                   Recommendation
+Backend                     Node.js + Express
+Frontend                    Bootstrap 5
+Database                    MySQL / AWS RDS
+API communication           REST API
+Real-time calls             Socket.IO
+Background jobs             BullMQ + Redis
+Authentication              Secure sessions or JWT
+Logging                     Pino
+Process manager             PM2
+Web server                  Nginx
+Hosting                     AWS EC2
+File storage                AWS S3
+
+
+ My deployment recommendation
+ For your CRM, start with a modular monolith rather than microservices.
+
+This means:
+
+One Node.js API application.
+
+One Bootstrap frontend.
+
+One MySQL database.
+
+Separate modules for customers, leads, users, telephony and reports.
+
+Background jobs for call events, notifications and reports.
+
+It will be simpler to develop, deploy, debug and maintain. You can split modules into independent services later if the application grows significantly.
+
+
+
+                                    Users / Web Browser
+                                    HTTPS requests
+                                    |
+                                    AWS Security Group
+                                    Allow HTTPS and restricted administration access
+                                    |
+                                    Nginx Reverse Proxy
+                                    SSL termination and frontend serving
+
+                    Bootstrap UI                Node.js API
+                    Static frontend             PM2 · Port 3000
+
+                                    MySQL Database
+                                Preferably AWS RDS in a private subnet
+
