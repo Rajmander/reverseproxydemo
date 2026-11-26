@@ -1,8 +1,8 @@
 import express from "express";
 const app = express();
 
-import db from "./db.js";
-db();
+// import db from "./db.js";
+// db();
 
 import user from "./user.model.js";
 
