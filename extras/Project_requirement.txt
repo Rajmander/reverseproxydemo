@@ -343,3 +343,38 @@ It will be simpler to develop, deploy, debug and maintain. You can split modules
                                     MySQL Database
                                 Preferably AWS RDS in a private subnet
 
+
+1. How are you building the frontend?
+
+
+Bootstrap 5 + HTML + JavaScript
+
+Bootstrap + jQuery
+
+Bootstrap + EJS
+
+
+2. Where will MySQL run?
+
+
+AWS RDS MySQL
+
+MySQL on EC2
+
+Existing external MySQL server
+3. EC2 deployment architecture
+
+
+Single EC2 instance
+
+Separate frontend and backend EC2 instances
+
+EC2 + Load Balancer + Auto Scaling
+4. Node.js version
+
+
+Node.js 22 LTS
+
+Node.js 24 LTS
+
+Not decided
